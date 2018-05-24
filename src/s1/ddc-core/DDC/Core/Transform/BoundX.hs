@@ -102,13 +102,19 @@ instance MapBoundX (Exp a) n where
          -> XAbs a (MImplicit b) (mapBoundAtDepthX f (d + countBAnons [b]) x)
 
         XApp a x1 x2    -> XApp a (down x1) (down x2)
-         
-        XLet a lets x   
-         -> let (lets', levels) = mapBoundAtDepthXLets f d lets 
+
+        XLet a lets x
+         -> let (lets', levels) = mapBoundAtDepthXLets f d lets
             in  XLet a lets' (mapBoundAtDepthX f (d + levels) x)
 
         XCase a x alts  -> XCase a (down x)  (map down alts)
         XCast a cc x    -> XCast a (down cc) (down x)
+
+        -- TODO FIXME need to check this handling
+        -- var is only bound in e2, so should be roughly right
+        XAsync a v e1 e2
+         -> let (v', levels) = mapBoundAtDepthXLets f d v
+            in  XAsync a v' (down e1) (mapBoundAtDepthX f (d + levels) e2)
 
 
 instance MapBoundX (Arg a) n where
